@@ -1,5 +1,6 @@
 package com.devin.tradereporting.controller;
 
+import com.devin.tradereporting.exception.XmlParsingException;
 import com.devin.tradereporting.model.SaveTradesRequest;
 import com.devin.tradereporting.model.Trade;
 import com.devin.tradereporting.service.TradeService;
@@ -34,5 +35,13 @@ public class TradeController {
         } else {
             return ResponseEntity.status(HttpStatus.OK).body("No trades are saved");
         }
+    }
+
+    /**
+     * XML Parsing error is considered as Bad Request error.
+     */
+    @ExceptionHandler({ XmlParsingException.class })
+    public ResponseEntity<String> handleXmlParsingException(XmlParsingException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

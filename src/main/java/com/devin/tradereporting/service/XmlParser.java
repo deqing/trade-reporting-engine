@@ -1,6 +1,8 @@
 package com.devin.tradereporting.service;
 
+import com.devin.tradereporting.exception.XmlParsingException;
 import com.devin.tradereporting.model.Trade;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -19,11 +21,22 @@ import java.util.List;
 @Service
 public class XmlParser {
 
+    @Value("${eventXmlFilesPath}")
+    private String path;
+
+    @Value("${xml.path.buyer}")
+    private String buyerPath;
+
+    @Value("${xml.path.seller}")
+    private String sellerPath;
+
+    @Value("${xml.path.currency}")
+    private String currencyPath;
+
+    @Value("${xml.path.amount}")
+    private String amountPath;
+
     public List<Trade> parseXmlFiles(List<String> filenames) {
-        String BUYER_PATH = "//buyerPartyReference/@href";
-        String SELLER_PATH = "//sellerPartyReference/@href";
-        String AMOUNT_PATH = "//paymentAmount/amount";
-        String CURRENCY_PATH = "//paymentAmount/currency";
 
         List<Trade> trades = new ArrayList<>();
         var factory = DocumentBuilderFactory.newInstance();
@@ -32,16 +45,16 @@ public class XmlParser {
         try {
             var builder = factory.newDocumentBuilder();
             for (String filename : filenames) {
-                var document = builder.parse(new File(filename));
+                var document = builder.parse(new File(path + filename));
                 var xpath = xpathFactory.newXPath();
-                String buyer = getValue(xpath, document, BUYER_PATH);
-                String seller = getValue(xpath, document, SELLER_PATH);
-                String amount = getValue(xpath, document, AMOUNT_PATH);
-                String currency = getValue(xpath, document, CURRENCY_PATH);
+                String buyer = getValue(xpath, document, buyerPath);
+                String seller = getValue(xpath, document, sellerPath);
+                String amount = getValue(xpath, document, amountPath);
+                String currency = getValue(xpath, document, currencyPath);
                 trades.add(new Trade(buyer, seller, amount, currency));
             }
         } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
-            throw new RuntimeException(e);
+            throw new XmlParsingException("Error parsing XML file: " + e.getMessage(), e.getCause());
         }
 
         return trades;

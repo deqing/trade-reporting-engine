@@ -20,12 +20,21 @@ public class TradeService {
         this.xmlParser = xmlParser;
     }
 
+    /**
+     * Parse XML files and save to DB.
+     * @param filenames XML file paths which contains trades
+     * @return number of trades that have been saved into DB
+     */
     public int saveTrades(List<String> filenames) {
         var trades = xmlParser.parseXmlFiles(filenames);
         repository.saveAll(trades);
         return trades.size();
     }
 
+    /**
+     * Get all trades that match specific filter from DB.
+     * @return filtered trades
+     */
     public List<Trade> getTrades() {
         var query = createQuery();  // This can be replaced and/or combined with other queries
         return repository.findAll(query).stream()
